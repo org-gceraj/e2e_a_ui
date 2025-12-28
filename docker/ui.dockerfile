@@ -1,17 +1,20 @@
 # Base image
 FROM python:3.10-slim
 
+RUN apt-get update \
+    && rm -rf /var/lib/apt/lists/*
+
 # Working directory
 WORKDIR /app
+
+# Copy source code
+COPY scripts/ scripts/
 
 # Copy dependency list first (layer caching)
 COPY docker/requirements.ui.txt docker/requirements.ui.txt
 
 # Install dependencies
 RUN pip install --no-cache-dir -r docker/requirements.ui.txt
-
-# Copy source code
-COPY scripts/ scripts/
 
 # Expose Streamlit port
 EXPOSE 8501
