@@ -6,6 +6,7 @@ RUN apt-get update \
 
 # Working directory
 WORKDIR /app
+RUN mkdir -p /app/docker
 
 # Copy source code
 COPY scripts/ scripts/
