@@ -1,4 +1,3 @@
-os
 # UI
 streamlit
 requests
