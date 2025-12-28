@@ -34,7 +34,7 @@ jobs:
     # 4️⃣ Build UI image
     - name: Build UI Docker image
       run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/e2e_v1-ui:${{ env.TS }} -f docker/Dockerfile.ui .
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/e2e_v1-ui:${{ env.TS }} -f docker/ui.dockerfile .
 
 
     # 6️⃣ Push UI image
