@@ -1,0 +1,80 @@
+name: CI-CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  # =============================
+  # JOB 1: Build & Push Images
+  # =============================
+  build:
+    name: Build & Push to DockerHub
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set timestamp
+      run: echo "TS=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+    
+    - name: Use timestamp
+      run: echo "Timestamp is $TS"
+
+    # 2️⃣ Login to DockerHub
+    - name: Login to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+
+    # 4️⃣ Build UI image
+    - name: Build UI Docker image
+      run: |
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/e2e_v1-ui:${{ env.TS }} -f docker/Dockerfile.ui .
+
+
+    # 6️⃣ Push UI image
+    - name: Push UI image
+      run: |
+        docker push ${{ secrets.DOCKER_USERNAME }}/e2e_v1-ui:${{ env.TS }}
+
+  # =============================
+  # JOB 2: Deploy to Kubernetes
+  # =============================
+  deploy:  
+    name: Deploy to Kubernetes
+    runs-on: self-hosted
+    needs: build
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup kubectl
+      run: |
+        mkdir -p ~/.kube
+        echo "${{ secrets.KUBECONFIG_DATA }}" | base64 -d > ~/.kube/config
+
+    - name: Test kubectl access
+      run: kubectl get nodes
+
+    - name: Create AWS secret in Kubernetes
+      run: |
+        kubectl create secret generic aws-creds \
+          --from-literal=AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+          --from-literal=AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+          --from-literal=AWS_DEFAULT_REGION=${{ secrets.AWS_DEFAULT_REGION }} \
+          --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl apply -f k8s/ui-deployment.yaml
+
+    - name: Services to Kubernetes
+      run: |
+        kubectl apply -f k8s/ui-service.yaml
+
