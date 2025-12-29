@@ -2,7 +2,10 @@ import streamlit as st
 import requests
 import os
 
-ENV_API_URL = os.getenv("ENV_API_URL")
+ip = requests.get("https://api.ipify.org").text
+IP_URL = "http://"+ip+":30080"
+
+ENV_API_URL = os.getenv("ENV_API_URL", IP_URL)
 API_URL=ENV_API_URL+"/predict"
 
 st.title("Sentiment Analysis")
