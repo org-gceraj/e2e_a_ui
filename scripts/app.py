@@ -6,8 +6,11 @@ import threading
 from prometheus_client import CollectorRegistry, Counter, Histogram, make_wsgi_app
 from wsgiref.simple_server import make_server
 
+# ---------------------------------------------------------
+# Create registry + metrics ONCE using cache_resource
+# ---------------------------------------------------------
 @st.cache_resource
-def get_metrics():
+def init_metrics():
     registry = CollectorRegistry()
 
     PREDICTION_REQUESTS = Counter(
@@ -31,18 +34,25 @@ def get_metrics():
     return registry, PREDICTION_REQUESTS, PREDICTION_ERRORS, PREDICTION_LATENCY
 
 
+# ---------------------------------------------------------
+# Start metrics server ONCE — no registry argument needed
+# ---------------------------------------------------------
 @st.cache_resource
-def start_metrics_server(registry):
+def start_metrics_server():
+    registry, *_ = init_metrics()
     app = make_wsgi_app(registry)
     server = make_server('', 8000, app)
+
     thread = threading.Thread(target=server.serve_forever)
     thread.daemon = True
     thread.start()
+
     return True
 
 
-registry, PREDICTION_REQUESTS, PREDICTION_ERRORS, PREDICTION_LATENCY = get_metrics()
-start_metrics_server(registry)
+# Initialize everything once
+registry, PREDICTION_REQUESTS, PREDICTION_ERRORS, PREDICTION_LATENCY = init_metrics()
+start_metrics_server()
 
 
 
