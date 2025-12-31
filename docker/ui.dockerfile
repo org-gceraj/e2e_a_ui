@@ -19,6 +19,7 @@ RUN pip install --no-cache-dir -r docker/requirements.ui.txt
 
 # Expose Streamlit port
 EXPOSE 8501
+EXPOSE 8001
 EXPOSE 30007
 
 # Start Streamlit app
