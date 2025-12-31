@@ -8,7 +8,7 @@ import time
 # Start Prometheus metrics server
 # -----------------------------
 # Prometheus will scrape http://<container-ip>:8000/metrics
-start_http_server(8501)
+# start_http_server(8501)
 
 # -----------------------------
 # Define Prometheus metrics
