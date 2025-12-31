@@ -1,32 +1,45 @@
 import streamlit as st
 import requests
 import os
-from prometheus_client import Counter, Histogram, start_http_server
+from prometheus_client import CollectorRegistry, Counter, Histogram
 import time
 
-# -----------------------------
-# Start Prometheus metrics server
-# -----------------------------
-# Prometheus will scrape http://<container-ip>:8000/metrics
-# start_http_server(8501)
+from prometheus_client import make_wsgi_app
+from wsgiref.simple_server import make_server
+import threading
 
-# -----------------------------
-# Define Prometheus metrics
-# -----------------------------
+registry = CollectorRegistry()
+
 PREDICTION_REQUESTS = Counter(
     "streamlit_prediction_requests_total",
-    "Total number of prediction requests"
+    "Total number of prediction requests",
+    registry=registry
 )
 
 PREDICTION_ERRORS = Counter(
     "streamlit_prediction_errors_total",
-    "Total number of prediction errors"
+    "Total number of prediction errors",
+    registry=registry
 )
 
 PREDICTION_LATENCY = Histogram(
     "streamlit_prediction_latency_seconds",
-    "Latency of prediction requests"
+    "Latency of prediction requests",
+    registry=registry
 )
+
+
+
+def start_metrics_server():
+    app = make_wsgi_app(registry)
+    server = make_server('', 8000, app)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.daemon = True
+    thread.start()
+
+start_metrics_server()
+
+
 
 # -----------------------------
 # Your existing logic
