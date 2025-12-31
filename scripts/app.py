@@ -41,7 +41,7 @@ def init_metrics():
 def start_metrics_server():
     registry, *_ = init_metrics()
     app = make_wsgi_app(registry)
-    server = make_server('', 8501, app)
+    server = make_server('', 30080, app)
 
     thread = threading.Thread(target=server.serve_forever)
     thread.daemon = True
