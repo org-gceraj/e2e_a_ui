@@ -41,7 +41,7 @@ def init_metrics():
 def start_metrics_server():
     registry, *_ = init_metrics()
     app = make_wsgi_app(registry)
-    server = make_server('', 30080, app)
+    server = make_server('', 8001, app)
 
     thread = threading.Thread(target=server.serve_forever)
     thread.daemon = True
@@ -60,7 +60,7 @@ start_metrics_server()
 # Your existing logic
 # -----------------------------
 ip = requests.get("https://api.ipify.org").text
-IP_URL = "http://" + ip + ":8001"
+IP_URL = "http://" + ip + ":30080"
 
 ENV_API_URL = os.getenv("ENV_API_URL", IP_URL)
 API_URL = ENV_API_URL + "/predict"
