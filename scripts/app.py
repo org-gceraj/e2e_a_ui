@@ -60,7 +60,7 @@ start_metrics_server()
 # Your existing logic
 # -----------------------------
 ip = requests.get("https://api.ipify.org").text
-IP_URL = "http://" + ip + ":30080"
+IP_URL = "http://" + ip + ":8001"
 
 ENV_API_URL = os.getenv("ENV_API_URL", IP_URL)
 API_URL = ENV_API_URL + "/predict"
