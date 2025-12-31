@@ -1,43 +1,48 @@
 import streamlit as st
 import requests
 import os
-from prometheus_client import CollectorRegistry, Counter, Histogram
 import time
-
-from prometheus_client import make_wsgi_app
-from wsgiref.simple_server import make_server
 import threading
+from prometheus_client import CollectorRegistry, Counter, Histogram, make_wsgi_app
+from wsgiref.simple_server import make_server
 
-registry = CollectorRegistry()
+@st.cache_resource
+def get_metrics():
+    registry = CollectorRegistry()
 
-PREDICTION_REQUESTS = Counter(
-    "streamlit_prediction_requests_total",
-    "Total number of prediction requests",
-    registry=registry
-)
+    PREDICTION_REQUESTS = Counter(
+        "streamlit_prediction_requests_total",
+        "Total number of prediction requests",
+        registry=registry
+    )
 
-PREDICTION_ERRORS = Counter(
-    "streamlit_prediction_errors_total",
-    "Total number of prediction errors",
-    registry=registry
-)
+    PREDICTION_ERRORS = Counter(
+        "streamlit_prediction_errors_total",
+        "Total number of prediction errors",
+        registry=registry
+    )
 
-PREDICTION_LATENCY = Histogram(
-    "streamlit_prediction_latency_seconds",
-    "Latency of prediction requests",
-    registry=registry
-)
+    PREDICTION_LATENCY = Histogram(
+        "streamlit_prediction_latency_seconds",
+        "Latency of prediction requests",
+        registry=registry
+    )
+
+    return registry, PREDICTION_REQUESTS, PREDICTION_ERRORS, PREDICTION_LATENCY
 
 
-
-def start_metrics_server():
+@st.cache_resource
+def start_metrics_server(registry):
     app = make_wsgi_app(registry)
     server = make_server('', 8000, app)
     thread = threading.Thread(target=server.serve_forever)
     thread.daemon = True
     thread.start()
+    return True
 
-start_metrics_server()
+
+registry, PREDICTION_REQUESTS, PREDICTION_ERRORS, PREDICTION_LATENCY = get_metrics()
+start_metrics_server(registry)
 
 
 
